@@ -1,27 +1,43 @@
-# LocalSettle Frontend
+# Settla Frontend
 
-LocalSettle connects peer-to-peer marketplace activity with Stellar wallet actions. People can publish offers, open trades, coordinate local payment, and settle the crypto side with USDC on Stellar. This repository is the Next.js web client; the API and Stellar integrations live in the [LocalSettle backend](https://github.com/Local-Settle/local-settle-backend).
+![CI](https://github.com/Settla-Labs/settla-app/actions/workflows/ci-cd.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![Stellar](https://img.shields.io/badge/Stellar-Soroban-7D00FF?logo=stellar&logoColor=white)
+
+Settla connects peer-to-peer marketplace activity with Stellar wallet actions. People can publish offers, open trades, coordinate local payment, and settle the crypto side with USDC on Stellar. This repository is the Next.js web client; the API and Stellar integrations live in the [Settla backend](https://github.com/Settla/settla-backend).
 
 > **Network status:** the app defaults to Stellar Testnet. Testnet balances and transactions have no real-world value. Mainnet behavior depends on deployment configuration and should not be inferred from this source tree alone.
+
+## Table of Contents
+
+- [What the app does](#what-the-app-does)
+- [How Settla uses Stellar](#how-settla-uses-stellar)
+- [Architecture and code map](#architecture-and-code-map)
+- [Prerequisites](#prerequisites)
+- [Run locally](#run-locally)
+- [Quality checks](#quality-checks)
+- [Environment variables](#environment-variables)
+- [Contributing](#contributing)
+- [Security and trust](#security-and-trust)
 
 ## What the app does
 
 - Connects Stellar wallets through [Stellar Wallets Kit](https://github.com/Creit-Tech/Stellar-Wallets-Kit), including Freighter, LOBSTR, Albedo, xBull, Rabet, and Hana.
-- Lets users sign a short-lived wallet challenge to authenticate without entering a private key into LocalSettle.
+- Lets users sign a short-lived wallet challenge to authenticate without entering a private key into Settla.
 - Provides a peer-to-peer offer and order flow with counterparty chat, local payment instructions, evidence uploads, and escrow status.
-- Prepares direct USDC sends to a Stellar address or LocalSettle alias, requests the user's wallet signature, and shows the resulting transaction status.
+- Prepares direct USDC sends to a Stellar address or Settla alias, requests the user's wallet signature, and shows the resulting transaction status.
 - Shows wallet balances, activity, transaction history, profile, and security settings.
 
-## How LocalSettle uses Stellar
+## How Settla uses Stellar
 
 The browser delegates wallet connection, network checks, message signing, and transaction signing to Stellar Wallets Kit. The backend never receives a user's wallet secret through this flow.
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant App as LocalSettle web app
+    participant App as Settla web app
     participant Wallet as Stellar wallet
-    participant API as LocalSettle API
+    participant API as Settla API
     participant Stellar as Stellar network
     User->>App: Connect wallet
     App->>Wallet: Request public key and network
@@ -50,7 +66,7 @@ For protocol background, see Stellar's [developer documentation](https://develop
 | --- | --- |
 | Wallet connection and user transaction signatures | User-selected Stellar wallet |
 | USDC transfers and escrow state | Stellar; escrow orchestration uses Trustless Work |
-| Offers, order chat, payment instructions, and evidence | LocalSettle API and configured storage |
+| Offers, order chat, payment instructions, and evidence | Settla API and configured storage |
 | Local bank or cash payment | Between the two users, outside Stellar |
 
 Escrow currently accepts USDC. The application has no in-app on-chain refund operation; cancelling an order must not be described as reversing funds already deposited into escrow.
@@ -62,13 +78,21 @@ Escrow currently accepts USDC. The application has no in-app on-chain refund ope
 - `src/features/offer/`, `src/features/order/`, `src/features/escrow/`, `src/features/chat/` — marketplace and trade workflows.
 - `src/features/transactions/`, `src/features/dashboard/`, `src/features/settings/` — wallet activity and account experience.
 - `src/lib/` — API client and shared integration helpers.
-- `public/` — static assets and LocalSettle brand marks.
+- `public/` — static assets and Settla brand marks.
 
 The public pages in the app also describe the current project: `/info`, `/info/features`, and `/info/security`.
 
+## Prerequisites
+
+| Tool | Notes |
+| --- | --- |
+| **Node.js** | 20+ and npm |
+| **A Stellar wallet** | Freighter, xBull, Albedo, LOBSTR, Rabet, or Hana |
+| **Settla API** | running locally or a deployed URL |
+
 ## Run locally
 
-Requirements: Node.js 20+ and pnpm. Start the backend separately; see its [setup guide](https://github.com/Local-Settle/local-settle-backend#local-development).
+Requirements: Node.js 20+ and pnpm. Start the backend separately; see its [setup guide](https://github.com/Settla/settla-backend#local-development).
 
 ```bash
 pnpm install
@@ -101,14 +125,24 @@ pnpm analyze    # Build with bundle analysis
 
 Tests use `*.test.ts` or `*.test.tsx` and commonly live beside the feature or in `__tests__/`. Add coverage for wallet network handling, user-signature flows, API errors, and order state changes when touching those paths.
 
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in your values (see the file for inline docs). Key groups:
+
+| Variable group | Key variables |
+| --- | --- |
+| API | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_TRUSTLESS_WORK_API_URL`, `NEXT_PUBLIC_TRUSTLESS_WORK_API_KEY` |
+| Stellar | `NEXT_PUBLIC_USDC_ISSUER`, `NEXT_PUBLIC_STELLAR_NETWORK` |
+| Demo | `NEXT_PUBLIC_DEMO_MODE` |
+
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Keep frontend and backend API changes coordinated, describe user impact, link the relevant issue, and include screenshots for visible UI changes. Drips Wave participation requires repository application and organizer approval; see the [maintainer guide](https://docs.drips.network/wave/maintainers/participating-in-a-wave/) for the process.
 
 ## Security and trust
 
-Never request or commit a wallet secret, recovery phrase, token, or real user payment data. User transaction signing is requested from the connected wallet. Escrow deployment also depends on a separately configured platform operator key in the backend, so deployments must secure and restrict that key. See the [backend architecture notes](https://github.com/Local-Settle/local-settle-backend/blob/main/docs/architecture.md) for the complete trust boundary.
+Never request or commit a wallet secret, recovery phrase, token, or real user payment data. User transaction signing is requested from the connected wallet. Escrow deployment also depends on a separately configured platform operator key in the backend, so deployments must secure and restrict that key. See the [backend architecture notes](https://github.com/Settla/settla-backend/blob/main/docs/architecture.md) for the complete trust boundary.
 
 ## License
 
-LocalSettle is licensed under the MIT License. See [LICENSE](LICENSE).
+Settla is licensed under the MIT License. See [LICENSE](LICENSE).
